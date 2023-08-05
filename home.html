@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./assets/css/base.css">
+    <link rel="stylesheet" href="./assets/css/main.css">
+    <title>Youtube Downloader Desktop</title>
+</head>
+
+<body>
+    <div class="wrapper">
+        <form id="form" action="#submit" method="get">
+            <div class="form-group">
+                <input class="form-input" type="text" placeholder="https://www.youtube.com/watch?v=hGKt6......."
+                    required>
+            </div>
+            <div class="form-group">
+                <input class="form-submit" type="submit" value="Fetch">
+            </div>
+        </form>
+        <div class="result">
+            <div class="result-info">
+                <img src="" alt="" class="info-img">
+                <div class="info-wrap">
+                    <h2 class="info-title"></h2>
+                    <span class="info-id"></span>
+                    <span class="info-author"></span>
+                    <span class="info-rating"></span>
+                </div>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-bar__text"></div>
+                <div class="progress-bar__track">
+                    <div class="progress-bar__track-thumb"></div>
+                </div>
+            </div>
+            <ul class="result-list"></ul>
+        </div>
+    </div>
+    <script>
+        // Form
+        const formSubmitBtn = document.querySelector('.form-submit');
+
+        // Details
+        const bannerImg = document.querySelector('.result-banner-img');
+        const resultList = document.querySelector('.result-list');
+        const resultInfo = document.querySelector('.result-info');
+
+        // Progress
+        const progress = document.querySelector('.progress-bar');
+        const progressText = document.querySelector('.progress-bar__text');
+        const progressThumb = document.querySelector('.progress-bar__track-thumb');
+
+        // Processing form
+        document.querySelector("#form").addEventListener('submit', (e) => {
+            // Stop reload page
+            e.preventDefault();
+
+            // Get url from input
+            const url = document.querySelector('.form-input').value;
+
+            // Send to server
+            window.API.sendUrl(url);
+            formSubmitBtn.setAttribute('disabled', 'on')
+            formSubmitBtn.value = 'Fetching ...';
+
+            window.API.receiveInfo((e, res) => {
+                const detail = res.videoDetails;
+                const formats = res.formats;
+
+                // Info
+                resultInfo.innerHTML = `
+                <img src="${detail.thumbnails[2].url}" alt="${detail.title}" class="info-img">
+                <div class="info-wrap">
+                    <h2 class="info-title">${detail.title}</h2>
+                    <span class="info-id"><strong>Video ID: </strong>${detail.videoId}</span>
+                    <span class="info-author"><strong>Author: </strong>${detail.author.name}</span>
+                    <span class="info-views-count"><strong>Views: </strong>${detail.viewCount}</span>
+                    <span class="info-category"><strong>Category: </strong>${detail.category}</span>
+                    <span class="info-upload-date"><strong>Uploaded: </strong>${detail.uploadDate}</span>
+                </div>`;
+
+                console.log(formats)
+
+                //resultList reset;
+                resultList.innerHTML = ``;
+
+                for (const format of formats) {
+                    if (format.container == 'mp4' && format.itag !== 18) {
+                        const resultItem = document.createElement('li');
+                        resultItem.classList.add('result-item');
+    
+                        const resultItemCodecs = document.createElement('span');
+                        resultItemCodecs.classList.add('result-item__codecs');
+                        resultItemCodecs.innerText = `[Itag:${format.itag}] - ${!format.qualityLabel ? `Audio [${format.audioCodec}]` : `${format.qualityLabel} [${format.codecs}]`} - ${window.API.utils.toMb(format.contentLength)}Mb`;
+    
+                        const resultItemDownload = document.createElement('button');
+                        resultItemDownload.classList.add('result-item__down-btn');
+                        resultItemDownload.innerText = 'Download';
+                        resultItemDownload.addEventListener('click', (btnEvent) => {
+                            e.sender.send('sendDownload', {
+                                detail: detail,
+                                formats: formats,
+                                itag: format.itag
+                            });
+                            console.log(btnEvent)
+                        });
+    
+                        resultItem.appendChild(resultItemCodecs);
+                        resultItem.appendChild(resultItemDownload);
+    
+                        resultList.appendChild(resultItem);
+                    }
+                }
+
+                // Button update
+                formSubmitBtn.removeAttribute('disabled');
+                formSubmitBtn.value = 'Fetch';
+            });
+
+            window.API.progress((e, res) => {
+                if (res.end == true){
+                    progress.style.display = 'none';
+                    return;
+                } 
+
+                progress.style.display = 'block';
+                progressThumb.style.width = `${res.percent}%`;
+                progressText.innerHTML = res.text
+            });
+        });
+    </script>
+</body>
+
+</html>

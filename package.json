@@ -1,0 +1,31 @@
+{
+  "name": "ytdl-desktop",
+  "version": "1.0.0",
+  "description": "Youtube Downloader Desktop",
+  "main": "index.js",
+  "author": "kayy0812",
+  "license": "MIT",
+  "dependencies": {
+    "@electron-forge/maker-wix": "^6.2.1",
+    "electron-squirrel-startup": "^1.0.0",
+    "ffmpeg-static-electron": "^2.0.3",
+    "fluent-ffmpeg": "^2.1.2",
+    "fs": "^0.0.1-security",
+    "ytdl-core": "^4.11.5"
+  },
+  "devDependencies": {
+    "@electron-forge/cli": "^6.2.1",
+    "@electron-forge/maker-deb": "^6.2.1",
+    "@electron-forge/maker-rpm": "^6.2.1",
+    "@electron-forge/maker-squirrel": "^6.2.1",
+    "@electron-forge/maker-zip": "^6.2.1",
+    "@electron-forge/plugin-auto-unpack-natives": "^6.2.1",
+    "electron": "^25.3.2",
+    "esm": "^3.2.25"
+  },
+  "scripts": {
+    "start": "electron-forge start",
+    "package": "electron-forge package",
+    "make": "electron-forge make"
+  }
+}
